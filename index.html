@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Q&A Study App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="sidebar" id="progress-sidebar">
+        <!-- Progress grid will be rendered here -->
+    </div>
+    
+    <div class="main-content">
+        <div class="container">
+            <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h1>Q&A Study App</h1>
+                <div class="buttons">
+                    <input type="file" id="file-upload" accept=".html" style="display: none" onchange="app.handleFileUpload(this)">
+                    <button class="nav-btn" onclick="document.getElementById('file-upload').click()">Upload Quiz</button>
+                    <a href="help.html" class="nav-btn" style="text-decoration: none; display: inline-block; line-height: normal;">Help</a>
+                </div>
+            </div>
+            <div class="progress-info" id="progress-info"></div>
+            
+            <div class="question-container" id="questions-container">
+                <!-- Question will be rendered here -->
+            </div>
+            
+            <div id="tally-container" class="hidden">
+                <!-- Tally page will be rendered here -->
+            </div>
+            
+            <div class="navigation">
+                <button class="nav-btn" id="prev-btn" onclick="app.prevQuestion()">Previous</button>
+                <button class="finish-btn" id="finish-btn" onclick="app.finishAttempt()">Finish Attempt</button>
+                <button class="nav-btn" id="next-btn" onclick="app.nextQuestion()">Next</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="parser.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
