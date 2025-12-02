@@ -1,54 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q&A App - Help</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --code-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            font-size: 16px;
+        }
+
         .help-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: var(--primary-color);
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h4 {
+            color: #555;
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        code {
+            background-color: rgba(27, 31, 35, 0.05);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+
         .code-block {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 4px;
-            font-family: monospace;
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-color);
+            font-family: 'Consolas', 'Monaco', monospace;
             white-space: pre-wrap;
-            margin: 10px 0;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
         }
+
         .back-btn {
             display: inline-block;
-            padding: 10px 20px;
-            background-color: #007bff;
+            padding: 12px 24px;
+            background-color: var(--accent-color);
             color: white;
             text-decoration: none;
-            border-radius: 4px;
-            margin-top: 20px;
+            border-radius: 6px;
+            margin-top: 30px;
+            font-weight: 500;
+            transition: background-color 0.2s;
         }
+
         .back-btn:hover {
-            background-color: #0056b3;
+            background-color: #2980b9;
+        }
+
+        strong {
+            color: var(--primary-color);
         }
     </style>
 </head>
 <body>
-    <div class="main-content">
-        <div class="help-container">
-            <h1>Q&A App File Format Guide</h1>
-            
-            <p>This application is designed to parse HTML exports from <strong>KeepNote</strong> pages. An example file named <code>Example.html</code> is included in the project folder for reference.</p>
+    <div class="help-container">
+        <h1>Q&A App File Format Guide</h1>
+        
+        <p>This application is designed to parse HTML exports from <strong>KeepNote</strong> pages. An example file named <code>Example.html</code> is included in the project folder for reference.</p>
 
-            <p>To upload a new quiz, your HTML file should follow this structure:</p>
-            
-            <h3>1. Questions Section</h3>
-            <p>The app supports two formats for questions. You can use whichever is easier to create.</p>
-            
-            <h4>Format A (Simple / Raw)</h4>
-            <p>This format is common when exporting from word processors. The question number is bolded, followed by the text, and options are in lists below it.</p>
-            <div class="code-block">
+        <p>To upload a new quiz, your HTML file should follow this structure:</p>
+        
+        <h3>1. Questions Section</h3>
+        <p>The app supports two formats for questions. You can use whichever is easier to create.</p>
+        
+        <h4>Format A (Simple / Raw)</h4>
+        <p>This format is common when exporting from word processors. The question number is bolded, followed by the text, and options are in lists below it.</p>
+        <div class="code-block">
 <b>1.</b> Question text goes here?
 <ul>
     <li>Option A</li>
@@ -56,11 +121,11 @@
 <ul>
     <li>Option B</li>
 </ul>
-            </div>
+        </div>
 
-            <h4>Format B (Structured)</h4>
-            <p>In this format, the question number is inside the list item.</p>
-            <div class="code-block">
+        <h4>Format B (Structured)</h4>
+        <p>In this format, the question number is inside the list item.</p>
+        <div class="code-block">
 <ul>
     <li><b>1.</b> Question text here?</li>
 </ul>
@@ -72,11 +137,11 @@
         <ul><li>Option B</li></ul>
     </li>
 </ul>
-            </div>
+        </div>
 
-            <h3>2. Answers Section</h3>
-            <p>The answers section should be at the bottom of the file, marked by "Answers".</p>
-            <div class="code-block">
+        <h3>2. Answers Section</h3>
+        <p>The answers section should be at the bottom of the file, marked by "Answers".</p>
+        <div class="code-block">
 <b><u>Answers</u></b>
 <ul>
     <li><b>1.</b> A. Explanation text...</li>
@@ -84,10 +149,9 @@
 <ul>
     <li><b>2.</b> B. Explanation text...</li>
 </ul>
-            </div>
-
-            <a href="index.html" class="back-btn">Return to Q&A App</a>
         </div>
+
+        <a href="index.html" class="back-btn">Return to Q&A App</a>
     </div>
 </body>
 </html>
