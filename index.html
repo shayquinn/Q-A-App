@@ -21,7 +21,7 @@
             <div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h1>Q&A Study App</h1>
                 <div class="buttons">
-                    <input type="file" id="file-upload" accept=".html" style="display: none" onchange="app.handleFileUpload(this)">
+                    <input type="file" id="file-upload" accept=".html,.png,.jpg,.jpeg,.gif" multiple style="display: none" onchange="app.handleFileUpload(this)">
                     <button class="nav-btn" onclick="document.getElementById('file-upload').click()">Upload Quiz</button>
                     <a href="help.html" class="nav-btn" style="text-decoration: none; display: inline-block; line-height: normal;">Help</a>
                 </div>

@@ -34,14 +34,14 @@
         // Get the entire HTML as text to work around DOM issues
         let InText = doc.body.innerHTML;
         const htmlText = cleanText(InText);
-        console.log(htmlText);
+        //console.log(htmlText);
         // Find all question numbers using regex on the raw HTML
         
         //const questionRegex = /<b>\b([1-9]|[1-9][0-9]|100)\b\.[\s\xA0]<\/b>/g;
         const questionRegex = /<b>\b([1-9]|[1-9][0-9]|100)\b\.\s<\/b>/g;
         let match;
         while ((match = questionRegex.exec(htmlText)) !== null) {
-            console.log(`Processing question`);
+            //console.log(`Processing question`);
             const number = parseInt(match[1]);
             let questionText = match[2];
             
@@ -50,20 +50,34 @@
             // Extract question text: it's the text immediately following the match
             const afterMatch = htmlText.substring(match.index + match[0].length);
             
-            // Simple heuristic: take text until the first <ul>
-            let qTextEnd = afterMatch.indexOf('<ul>');
+            // Find the next question to limit our search area
+            const nextQuestionMatch = afterMatch.match(/<b>\b([1-9]|[1-9][0-9]|100)\b\.\s<\/b>/);
+            const searchLimit = nextQuestionMatch ? nextQuestionMatch.index : Math.min(afterMatch.length, 2000);
+            const questionSection = afterMatch.substring(0, searchLimit);
+            
+            // Extract any images in this question section (both standalone and in UL tags)
+            const imgMatches = questionSection.match(/<img[^>]*>/g) || [];
+            const imageHtml = imgMatches.join('<br/>');
+            //console.log(`Question ${number}: Found ${imgMatches.length} image(s)`);
+            
+            // Simple heuristic: take text until the first <ul> for the question text
+            let qTextEnd = questionSection.indexOf('<ul>');
             if (qTextEnd === -1) qTextEnd = 200; // Fallback
             
-            let rawQuestionText = afterMatch.substring(0, qTextEnd);
-            // Cut off if we hit another bold tag (next question)
-            const nextBold = rawQuestionText.indexOf('<b>');
-            if (nextBold !== -1) rawQuestionText = rawQuestionText.substring(0, nextBold);
+            let rawQuestionText = questionSection.substring(0, qTextEnd);
             
-            // Clean the question text - remove HTML tags
-            questionText = rawQuestionText.replace(/<[^>]*>/g, ' ');
+            // Clean the question text - remove HTML tags BUT preserve img tags
+            questionText = rawQuestionText.replace(/<(?!img\s)(?!\/img>)[^>]*>/g, ' ');
+            
+            // Add images after the question text if there are any
+            if (imageHtml) {
+                questionText += '<br/>' + imageHtml;
+            }
             
             // Now find options that follow this question
             // Options are in UL tags after the question
+            // Skip UL tags that only contain images (these are part of the question)
+            // Options typically have nested UL structure: <ul><li><ul><li>text</li></ul></li></ul>
             const options = [];
             
             const ulRegex = /<ul>(.*?)<\/ul>/gs;
@@ -71,14 +85,29 @@
             let ulMatch;
             let optionCount = 0;
             
-            // Limit search scope for options
-            const nextQuestionMatch = afterMatch.match(/<b>\b([1-9]|[1-9][0-9]|100)\b\.[\s\xA0]<\/b>/);
-            const searchLimit = nextQuestionMatch ? nextQuestionMatch.index : afterMatch.length;
-            const searchArea = afterMatch.substring(0, searchLimit);
-            
-            while ((ulMatch = ulRegex.exec(searchArea)) !== null && optionCount < 4) {
+            // Use the questionSection we already defined above for searching options
+            while ((ulMatch = ulRegex.exec(questionSection)) !== null && optionCount < 4) {
+                const ulContent = ulMatch[1];
+                
+                // Skip if this UL only contains an image and no nested UL
+                // Image ULs: <ul><li style="list-style-type: none"><img src="..." /></li></ul>
+                // Option ULs: <ul><li style="list-style-type: none"><ul><li>text</li></ul></li></ul>
+                const hasImage = /<img[^>]*>/i.test(ulContent);
+                const hasNestedUL = /<ul>/i.test(ulContent);
+                const textContent = ulContent.replace(/<[^>]*>/g, ' ').trim();
+                
+                // Skip if it has an image but no nested UL and minimal text
+                if (hasImage && !hasNestedUL && textContent.length < 10) {
+                    continue;
+                }
+                
+                // Skip if it's just a nested structure with no actual text content
+                if (!hasImage && textContent.length < 2) {
+                    continue;
+                }
+                
                 // Extract text from the UL, removing all HTML tags
-                let optionText = ulMatch[1].replace(/<[^>]*>/g, ' ');
+                let optionText = ulContent.replace(/<[^>]*>/g, ' ');
                 
                 // Skip if it's empty or looks like a question number
                 if (optionText && !optionText.match(/^\d+\./) && optionText.length < 200) {

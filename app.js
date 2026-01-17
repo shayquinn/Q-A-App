@@ -7,6 +7,7 @@ class QnAApp {
         this.questions = [];
         this.currentPage = 1;
         this.showingTally = false;
+        this.uploadedImages = {};
         this.init();
     }
 
@@ -26,7 +27,8 @@ class QnAApp {
             const state = {
                 questions: this.questions,
                 currentPage: this.currentPage,
-                showingTally: this.showingTally
+                showingTally: this.showingTally,
+                uploadedImages: this.uploadedImages
             };
             localStorage.setItem('qnaAppState', JSON.stringify(state));
         } catch (e) {
@@ -42,6 +44,7 @@ class QnAApp {
                 this.questions = state.questions || [];
                 this.currentPage = state.currentPage || 1;
                 this.showingTally = state.showingTally || false;
+                this.uploadedImages = state.uploadedImages || {};
             }
         } catch (e) {
             console.error('Error loading state:', e);
@@ -70,32 +73,96 @@ class QnAApp {
     }
 
     handleFileUpload(input) {
-        const file = input.files[0];
-        if (!file) return;
+        const files = Array.from(input.files);
+        if (files.length === 0) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const content = e.target.result;
-            // Use the global parseHTMLContent function from parser.js
-            this.questions = parseHTMLContent(content);
-            
-            if (this.questions.length > 0) {
-                this.resetAllAnswers();
-                this.currentPage = 1;
-                this.showingTally = false;
-                this.saveState();
+        // Find the HTML file
+        const htmlFile = files.find(f => f.name.endsWith('.html'));
+        if (!htmlFile) {
+            alert('Please select an HTML file.');
+            return;
+        }
+
+        // Store image files
+        const imageFiles = files.filter(f => 
+            f.name.endsWith('.png') || 
+            f.name.endsWith('.jpg') || 
+            f.name.endsWith('.jpeg') || 
+            f.name.endsWith('.gif')
+        );
+
+        // Store images in memory for later use
+        this.uploadedImages = {};
+        const imagePromises = imageFiles.map(imgFile => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.uploadedImages[imgFile.name] = e.target.result;
+                    resolve();
+                };
+                reader.readAsDataURL(imgFile);
+            });
+        });
+
+        // Wait for all images to load, then process HTML
+        Promise.all(imagePromises).then(() => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
                 
-                // Show navigation
-                const navigation = document.querySelector('.navigation');
-                if (navigation) navigation.style.display = 'flex';
+                // Check if HTML contains images
+                const hasImages = /<img\s+[^>]*src=["']([^"']+)["']/gi.test(content);
+                const imageMatches = content.match(/<img\s+[^>]*src=["']([^"']+)["']/gi);
+                let missingImages = [];
                 
-                this.renderPage();
-                alert(`Loaded ${this.questions.length} questions successfully!`);
-            } else {
-                alert('Could not parse questions from this file. Please check the format.');
-            }
-        };
-        reader.readAsText(file);
+                if (hasImages && imageMatches) {
+                    // Extract image filenames from src attributes
+                    imageMatches.forEach(imgTag => {
+                        const srcMatch = imgTag.match(/src=["']([^"']+)["']/);
+                        if (srcMatch) {
+                            const imgSrc = srcMatch[1];
+                            const imgFilename = imgSrc.split('/').pop();
+                            if (!this.uploadedImages[imgFilename]) {
+                                missingImages.push(imgFilename);
+                            }
+                        }
+                    });
+                }
+                
+                // Use the global parseHTMLContent function from parser.js
+                this.questions = parseHTMLContent(content);
+                
+                if (this.questions.length > 0) {
+                    this.resetAllAnswers();
+                    this.currentPage = 1;
+                    this.showingTally = false;
+                    this.saveState();
+                    
+                    // Show navigation
+                    const navigation = document.querySelector('.navigation');
+                    if (navigation) navigation.style.display = 'flex';
+                    
+                    this.renderPage();
+                    
+                    // Show appropriate message
+                    let message = `Loaded ${this.questions.length} questions successfully!`;
+                    if (hasImages) {
+                        if (missingImages.length > 0) {
+                            message += `\n\nWARNING: This quiz contains images!\nMissing images: ${missingImages.join(', ')}\n\nPlease upload the HTML file together with all image files.`;
+                        } else {
+                            message += `\n\n${imageFiles.length} image(s) uploaded successfully.`;
+                        }
+                    }
+                    alert(message);
+                } else {
+                    alert('Could not parse questions from this file. Please check the format.');
+                }
+            };
+            reader.readAsText(htmlFile);
+        });
+        
+        // Clear the input so the same file can be uploaded again
+        input.value = '';
     }
 
     resetAllAnswers() {
@@ -175,10 +242,22 @@ class QnAApp {
     renderQuestion(question) {
         const optionLetters = ['A', 'B', 'C', 'D'];
         
+        // Replace image src with uploaded image data if available
+        let questionText = question.question;
+        const imgRegex = /<img\s+[^>]*src=["']([^"']+)["']/gi;
+        questionText = questionText.replace(imgRegex, (match, src) => {
+            // Handle spaces and URL encoding in filename
+            const filename = decodeURIComponent(src.split('/').pop());
+            if (this.uploadedImages[filename]) {
+                return match.replace(src, this.uploadedImages[filename]);
+            }
+            return match;
+        });
+        
         return `
             <div class="question">
                 <div class="question-text">
-                    <strong>Q${question.number}:</strong> ${question.question}
+                    <strong>Q${question.number}:</strong> ${questionText}
                 </div>
                 <div class="options">
                     ${question.options.map((option, index) => {
