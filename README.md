@@ -2,6 +2,8 @@
 
 A lightweight, browser-based study application designed to parse and interactively display quiz questions from HTML files (specifically formatted like KeepNote exports).
 
+![Demo](Screenshot.png)
+
 ## Features
 
 *   **Interactive Quiz Interface**: Clean, easy-to-use interface for taking quizzes.

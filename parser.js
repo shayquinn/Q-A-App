@@ -17,7 +17,7 @@
 
         const questions = [];
         
-        console.log("=== Starting Parser ===");
+        //console.log("=== Starting Parser ===");
         
         // Helper function to clean text
         const cleanText = (text) => {
@@ -45,7 +45,7 @@
             const number = parseInt(match[1]);
             let questionText = match[2];
             
-            console.log(`Found question ${number}`);
+            
             
             // Extract question text: it's the text immediately following the match
             const afterMatch = htmlText.substring(match.index + match[0].length);
@@ -127,7 +127,7 @@
                     answered: false,
                     isCorrect: null
                 });
-                console.log(`✓ Question ${number} with ${options.length} options: "${questionText.substring(0, 50)}..."`);
+              
             }
         }
         
@@ -151,7 +151,7 @@
                 if (q) {
                     q.answer = letter;
                     q.answerExplanation = explanation.trim();
-                    console.log(`✓ Answer for ${num}: ${letter}`);
+                    //console.log(`✓ Answer for ${num}: ${letter}`);
                 }
             }
         }
